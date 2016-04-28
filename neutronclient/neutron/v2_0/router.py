@@ -129,11 +129,16 @@ class UpdateRouter(neutronV20.UpdateCommand):
             '--no-routes',
             action='store_true',
             help=_('Remove routes associated with the router.'))
-        parser.add_argument(
+        portfwds_group = parser.add_mutually_exclusive_group()
+        portfwds_group.add_argument(
             '--portforwarding', metavar='inside_addr=IP_ADDR,protocol=PROTOCOL,outside_port=PORT,inside_port=PORT',
             action='append', dest='portforwardings',
             type=utils.str2dict_type(required_keys=['inside_addr', 'protocol', 'outside_port', 'inside_port']),
             help=_('Port-forwardings to associate with the router.'))
+        portfwds_group.add_argument(
+            '--no-portforwardings',
+            action='store_true',
+            help=_('Remove portforwardings associated with the router.'))
 
     def args2body(self, parsed_args):
         body = {}
@@ -145,7 +150,10 @@ class UpdateRouter(neutronV20.UpdateCommand):
             body['routes'] = None
         elif parsed_args.routes:
             body['routes'] = parsed_args.routes
-        body['portforwardings'] = parsed_args.portforwardings
+        if parsed_args.no_portforwardings:
+            body['portforwardings'] = None
+        elif parsed_args.portforwardings:
+            body['portforwardings'] = parsed_args.portforwardings
         return {self.resource: body}
 
 
